@@ -1,112 +1,192 @@
-# Claude Code Telegram Monitor Bot
+# Claude Code Telegram Monitor
 
-Monitor Claude Code sessions from your phone via Telegram:
-- Session started/ended notifications
-- Command execution alerts
-- Error notifications
+> Real-time notifications for Claude Code sessions — monitor your AI coding assistant from anywhere.
 
-## Installation
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude-Code-blueviolet)](https://claude.ai)
 
-### 1. Create Telegram Bot
+---
+
+## Features
+
+- **Real-time Notifications** — Get instant alerts when tasks complete or errors occur
+- **Session Monitoring** — Track active sessions, tool executions, and error counts
+- **Mobile Access** — Check status from your phone via Telegram commands
+- **Zero Config** — Works automatically once installed, no manual intervention needed
+- **Customizable** — Choose which events trigger notifications
+
+## Preview
+
+```
+SESSION STARTED
+Session: abc12345
+Project: my-project
+Time: 14:32:05
+
+──────────────────────
+
+COMPLETED
+Tool: Bash
+Status: SUCCESS
+Time: 14:32:18
+Output: Build successful
+
+──────────────────────
+
+ERROR
+Tool: Bash
+Command: npm test
+Error: 3 tests failing
+```
+
+---
+
+## Quick Start
+
+### 1. Create Your Telegram Bot
 
 1. Open [@BotFather](https://t.me/botfather) on Telegram
-2. Send `/newbot`
-3. Choose a name and username for your bot
-4. **Copy the token**
+2. Send `/newbot` and follow the prompts
+3. Save the **API token** you receive
 
-### 2. Setup Project
+### 2. Install
 
 ```bash
-# Clone
-git clone https://github.com/USER/claude-telegram-bot.git
+git clone https://github.com/YOUR_USERNAME/claude-telegram-bot.git
 cd claude-telegram-bot
-
-# Install dependencies
 pip install -r requirements.txt
+```
 
-# Create .env file
+### 3. Configure
+
+```bash
 cp .env.example .env
 ```
 
-### 3. Add Token
+Edit `.env` with your credentials:
 
-Edit `.env` and add your token:
-```
-TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
-```
-
-### 4. Get Chat ID
-
-```bash
-python run_bot.py
+```env
+TELEGRAM_BOT_TOKEN=your_token_here
+TELEGRAM_CHAT_ID=your_chat_id_here
 ```
 
-While the bot is running, send `/start` to your bot on Telegram. Copy the Chat ID and add it to `.env`:
-```
-TELEGRAM_CHAT_ID=123456789
-```
+**Get your Chat ID:** Run `python run_bot.py`, then send `/start` to your bot on Telegram.
 
-### 5. Enable Hooks
+### 4. Enable Hooks
 
-**Option A: This project only** (when working in project directory)
-```bash
-# .claude/settings.json is already configured, works automatically
-```
-
-**Option B: All projects** (global)
 ```bash
 python install_hooks.py
 ```
 
-### 6. Test
+### 5. Done
 
-Open a new terminal and start Claude Code:
-```bash
-claude
-```
+Start a new Claude Code session — notifications will flow to Telegram automatically.
 
-Run a bash command - you should receive a Telegram notification!
+---
 
-## Telegram Commands
+## Usage
+
+### Telegram Commands
 
 | Command | Description |
 |---------|-------------|
-| `/start` | Show your Chat ID |
-| `/status` | Current status |
-| `/session` | Session details |
-| `/tasks` | Recent operations |
-| `/help` | Help |
+| `/start` | Welcome message and Chat ID |
+| `/status` | Current Claude Code status |
+| `/session` | Active session details |
+| `/tasks` | Recent tool executions |
+| `/help` | Show all commands |
+
+### Notification Events
+
+| Event | Trigger |
+|-------|---------|
+| Session Started | New Claude Code session begins |
+| Session Ended | Session closes with summary |
+| Running | Bash command starts |
+| Completed | Bash command succeeds |
+| Error | Any tool fails |
+
+---
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather | *required* |
+| `TELEGRAM_CHAT_ID` | Your Telegram chat ID | *required* |
+| `NOTIFY_ON_ERROR` | Send error notifications | `true` |
+| `NOTIFY_ON_COMPLETE` | Send completion notifications | `true` |
+| `NOTIFY_ON_LONG_RUNNING` | Alert on long operations | `true` |
+| `LONG_RUNNING_THRESHOLD` | Seconds before "long running" | `30` |
+
+### Hook Scope
+
+**Project-level** (this project only):
+- Hooks in `.claude/settings.json` activate when working in this directory
+
+**Global** (all projects):
+```bash
+python install_hooks.py  # Install
+python install_hooks.py  # Choose option 2 to uninstall
+```
+
+---
 
 ## Project Structure
 
 ```
 claude-telegram-bot/
 ├── .claude/
-│   ├── settings.json        # Hook configuration
+│   ├── settings.json          # Hook configuration
 │   └── hooks/
-│       └── telegram_hook.py # Hook handler
+│       └── telegram_hook.py   # Event handler
 ├── bot/
-│   ├── config.py            # Configuration
-│   ├── state.py             # Session state
-│   └── telegram_bot.py      # Bot service
-├── .env                     # Credentials (gitignored)
-├── .env.example             # Template
+│   ├── __init__.py
+│   ├── config.py              # Environment config
+│   ├── state.py               # Session state manager
+│   └── telegram_bot.py        # Telegram bot service
+├── state/                     # Runtime state files
+├── .env.example               # Environment template
+├── .gitignore
 ├── requirements.txt
-├── run_bot.py               # Start bot
-├── install_hooks.py         # Global hook installer
+├── run_bot.py                 # Bot entry point
+├── install_hooks.py           # Global installer
+├── setup.py                   # Interactive setup
 └── README.md
 ```
 
-## Notification Settings
+---
 
-In `.env`:
+## Troubleshooting
 
-```env
-NOTIFY_ON_ERROR=true          # Notify on errors
-NOTIFY_ON_COMPLETE=true       # Notify on completion
-NOTIFY_ON_LONG_RUNNING=true   # Notify on long operations
-LONG_RUNNING_THRESHOLD=30     # Seconds before "long running"
-```
+### Notifications not working?
+
+1. **Check credentials** — Verify `.env` has correct token and chat ID
+2. **Restart session** — Hooks load at session start, open a new terminal
+3. **Test manually:**
+   ```bash
+   echo '{"hook_event_name": "SessionStart", "session_id": "test", "cwd": "/test"}' | python .claude/hooks/telegram_hook.py
+   ```
+
+### Bot not responding?
+
+1. Make sure `python run_bot.py` is running
+2. Check if you started a chat with your bot first
+3. Verify the bot token is correct
+
+---
+
+## Contributing
+
+Contributions welcome. Feel free to:
+- Report bugs
+- Suggest features
+- Submit pull requests
+
+---
 
 ## License
 
